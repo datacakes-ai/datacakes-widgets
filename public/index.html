@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body style="background-color:#0a1628;">
+    <datacakes-loader></datacakes-loader>
+    <div id='divBot' style='display:block'><datacakes-bot id='docs-bot' bot-id="330f7e4881b2019d"></datacakes-bot></div>
+  </body>
+  <script>
+      document.addEventListener('datacakes-loader-response', (e) => {
+        if (e.detail.status == 'ok') {
+          document.getElementById('docs-bot').setAttribute('bot-id', e.detail.data.bot_id);
+          document.getElementById('divBot').style.display = 'block';
+        } else {
+          document.getElementById('divBot').style.display = 'none';
+          document.getElementById('docs-bot').setAttribute('bot-id', null);
+        }
+      });
+
+      document.addEventListener('datacakes-bot-loaded', (e) => {
+        document.getElementById('docs-bot').setAttribute('question', "What's this about?");
+      });
+  </script>
+</html>
