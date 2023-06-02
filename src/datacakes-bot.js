@@ -368,7 +368,7 @@ class Bot extends HTMLElement {
   }
 
   async checkBotExists(botId) {
-    if (botId.trim() === '') {
+    if (botId.trim() === '' | botId == null | botId === 'null') {
       this._botExists = false;
     } else {
       this._botExists = (await checkBotExists(this.baseURL, botId)).status === 'ok'? true: false;
@@ -388,13 +388,14 @@ class Bot extends HTMLElement {
     if (this._botExists) {
       this._thinking = true;
       this.render();
+      const query_id = Math.random().toString(36).slice(2);
       const response = await fetchAnswer(
-          this.baseURL, this.botId, this.input, this.chatHistory, this._sseChannel);
+          this.baseURL, this.botId, this.input,
+          this.chatHistory, this._sseChannel, query_id);
       this._thinking = false;
       this._collapsed = false;
 
       if (response.status == 'ok') {
-
         this.input = '';
         this.question = response.data.question.trim();
         this.answerText = response.data.answer.trim();
@@ -422,7 +423,7 @@ class Bot extends HTMLElement {
   }
 
   handleSSE(event) {
-    this.answerText += JSON.parse(event['data'])['text'];
+    this.answerText += JSON.parse(event['data'])['token'];
     this.render();
   }
 
@@ -448,7 +449,7 @@ class Bot extends HTMLElement {
   set botId(value) {
     this._botId = value;
     // Need to send this._botId, not this.botId, since
-    // the latter is updated only _after_ this function returns.
+    // the latter is updated only _after_ "set botId()" returns.
     this.checkBotExists(this._botId);
   }
 
@@ -579,12 +580,12 @@ async function checkBotExists(base_url, bot_id) {
 }
 
 
-async function fetchAnswer(base_url, bot_id, q, chat_history, sse_channel) {
+async function fetchAnswer(base_url, bot_id, q, chat_history, sse_channel, query_id) {
   const response = await fetch(`${base_url}/bot/${bot_id}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(
-        { q: q, chat_history: chat_history, sse_channel: sse_channel }),
+        { q: q, chat_history: chat_history, sse_channel: sse_channel, query_id: query_id }),
   });
 
   return response.json();
