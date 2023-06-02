@@ -308,12 +308,23 @@ class Bot extends HTMLElement {
     this.error = '';
     this.query_id = null;
     this.baseURL = 'https://bots1.datacakes.ai';
+    this._sseChannel = Math.random().toString(36).slice(2);
+    this._sseSource = new EventSource(
+        this.baseURL + '/subscribe/' + this._sseChannel);
     this._flagged = false;
     this._collapsed = true;
     this._chart = null;
   }
 
   connectedCallback() {
+    /* Need to bind "handleSSE" to the _widget_ ("this", coincidentally), else
+     * the "this" within handleSSE will refer to the EventSource object
+     * (which has no access to, say, answerText).
+     * Source: https://trekinbami.medium.com/its-not-magic-using-bind-in-javascript-18834e95cd8e
+    */
+    this._sseSource
+      .addEventListener('message', this.handleSSE.bind(this));
+
     this._shadow
       .getElementById('input')
       .addEventListener('focus', e => {
@@ -377,7 +388,8 @@ class Bot extends HTMLElement {
     if (this._botExists) {
       this._thinking = true;
       this.render();
-      const response = await fetchAnswer(this.baseURL, this.botId, this.input, this.chatHistory);
+      const response = await fetchAnswer(
+          this.baseURL, this.botId, this.input, this.chatHistory, this._sseChannel);
       this._thinking = false;
       this._collapsed = false;
 
@@ -406,6 +418,11 @@ class Bot extends HTMLElement {
     }
     this._flagged = false;
 
+    this.render();
+  }
+
+  handleSSE(event) {
+    this.answerText += JSON.parse(event['data'])['text'];
     this.render();
   }
 
@@ -562,11 +579,12 @@ async function checkBotExists(base_url, bot_id) {
 }
 
 
-async function fetchAnswer(base_url, bot_id, q, chat_history) {
+async function fetchAnswer(base_url, bot_id, q, chat_history, sse_channel) {
   const response = await fetch(`${base_url}/bot/${bot_id}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ q: q, chat_history: chat_history }),
+    body: JSON.stringify(
+        { q: q, chat_history: chat_history, sse_channel: sse_channel }),
   });
 
   return response.json();
