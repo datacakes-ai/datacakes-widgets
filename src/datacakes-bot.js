@@ -167,12 +167,9 @@ const createStyle = () => {
 
     #answer-flag.flagged {
       cursor: default;
-      /*background-color: #FA9137;*/
       background-color: rgb(30,121,141);
       border: 1px solid #FA9137;
-      font-weight: bold;
       color: #FA9137;
-      /*color: rgb(30,121,141);*/
     }
 
     #error {
