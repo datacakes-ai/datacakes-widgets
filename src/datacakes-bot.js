@@ -8,7 +8,7 @@ const createStyle = () => {
     main {
       margin: 0 auto;
       position: relative;
-      max-width: 550px;
+      max-width: 800px;
     }
 
     #containerQuestion {
@@ -84,7 +84,7 @@ const createStyle = () => {
     }
 
     #div-question {
-      padding: 5px 0px;
+      padding: 10px 0px;
     }
 
     #question {
@@ -93,7 +93,7 @@ const createStyle = () => {
       font-family: Verdana;
       font-weight: normal;
       font-style: normal;
-      color: #bbb;
+      color: #fff;
       line-height: 1.2;
     }
 
@@ -102,7 +102,7 @@ const createStyle = () => {
       padding: 5px;
       border-radius: 10px;
       border: 1px;
-      background-color: rgb(20,110,130);
+      background-color: rgb(20,100,120);
     }
 
     #thoughts {
@@ -110,15 +110,15 @@ const createStyle = () => {
       font-family: Verdana;
       font-weight: normal;
       font-style: normal;
-      color: #bbb;
-      line-height: 1;
+      color: #ccc;
+      line-height: 1.1;
       overflow: scroll;
-      max-height: 200px;
+      max-height: 300px;
     }
 
     #div-answer {
       display: flex;
-      padding: 5px 0px;
+      padding: 10px 0px;
     }
 
     #answer-text {
@@ -128,6 +128,33 @@ const createStyle = () => {
       font-style: normal;
       color: #fff;
       line-height: 1.2;
+    }
+
+    #answer-table {
+      margin: 0 auto;
+      font-size: 18px;
+      font-family: Verdana;
+      font-weight: normal;
+      font-style: normal;
+      color: #fff;
+      line-height: 1.2;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 8px;
+      text-align: left;
+      background-color: rgb(40,140,160);
+    }
+
+    th {
+      background-color: rgb(20,100,120);
     }
 
     #answer-chart {
@@ -239,6 +266,7 @@ const createBot = () => {
       <div id="div-answer">
         <div id=div-answer-content">
           <div id="answer-text"></div>
+          <div id="answer-table"></div>
           <canvas id="answer-chart"></canvas>
         </div>
         <div id="answer-tools">
@@ -334,11 +362,12 @@ class Bot extends HTMLElement {
     this.input = '';
     this.question = '';
     this.answerText = '';
-    this.answerData = {};
+    this.answerData = [];
     this.thoughtsText = '';
     this.error = '';
     this.query_id = null;
     this.baseURL = 'https://bots1.datacakes.ai';
+    this.baseURL = 'http://localhost:5000';
     this._flagged = false;
     this._collapsed = true;
     this._chart = null;
@@ -409,7 +438,7 @@ class Bot extends HTMLElement {
       this.question = this.input;
       this.thoughtsText = '';
       this.answerText = '';
-      this.answerData = {};
+      this.answerData = [];
       this.error = '';
       this._thinking = true;
       this.render();
@@ -434,7 +463,7 @@ class Bot extends HTMLElement {
         this.input = '';
         this.answerText = response.data.answer.trim();
         this.queryId = response.query_id;
-        this.answerData = response.data.data ?? {};
+        this.answerData = response.data.data ?? [];
         this.error = '';
         this.chatHistory = [this.question, this.answerText];
       } else if (response.status == 'error') {
@@ -523,7 +552,7 @@ class Bot extends HTMLElement {
         (!this._collapsed &&
             (this.question.trim().length
                 || this.answerText.trim().length
-                || Object.keys(this.answerData).length
+                || this.answerData.length
                 || this.error.length)
         )
     ) {
@@ -550,20 +579,27 @@ class Bot extends HTMLElement {
     /* THOUGHTS */
     if (this.thoughtsText.trim().length) {
       this._shadow.getElementById('div-thoughts').style.display = 'block';
-      let thoughts = this._shadow.getElementById('thoughts')
-      thoughts.innerText = this.thoughtsText;
+      const thoughts = this._shadow.getElementById('thoughts')
+      thoughts.innerHTML = '<pre>' + this.thoughtsText + '</pre>';
       thoughts.scrollTop = thoughts.scrollHeight;
     } else {
       this._shadow.getElementById('div-thoughts').style.display = 'none';
     }
 
     /* ANSWER */
-    if (this.answerText.trim().length || Object.keys(this.answerData).length) {
+    if (this.answerText.trim().length || this.answerData.length) {
       this._shadow.getElementById('div-answer').style.display = 'flex';
       if (this.answerText.length) {
         this._shadow.getElementById('answer-text').innerText = 'A: ' + this.answerText;
       }
-      if (Object.keys(this.answerData).length) {
+
+      if (this.answerData.length) {
+        drawTable(this._shadow.getElementById('answer-table'), this.answerData);
+      } else {
+        this._shadow.getElementById('answer-table').style.display = 'none';
+      }
+
+      if (this.answerChartData) {
         if (this._chart != null) {
           this._chart.destroy();
         }
@@ -590,6 +626,45 @@ class Bot extends HTMLElement {
   }
 }
 
+function drawTable(tableContainer, jsonData) {
+
+
+  // Create the table dynamically
+  var table = document.createElement("table");
+  tableContainer.appendChild(table);
+
+  // Create table header
+  var thead = document.createElement("thead");
+  table.appendChild(thead);
+
+  var headerRow = document.createElement("tr");
+  thead.appendChild(headerRow);
+
+  // Get the keys from the first object to create table headers
+  var keys = Object.keys(jsonData[0]);
+  keys.forEach(function(key) {
+      var th = document.createElement("th");
+      th.textContent = key;
+      headerRow.appendChild(th);
+  });
+
+  // Create table body
+  var tbody = document.createElement("tbody");
+  table.appendChild(tbody);
+
+  // Loop through the JSON data and create table rows
+  jsonData.forEach(function(obj) {
+    var row = document.createElement("tr");
+
+    keys.forEach(function(key) {
+      var cell = document.createElement("td");
+      cell.textContent = obj[key];
+      row.appendChild(cell);
+    });
+
+    tbody.appendChild(row);
+  });
+}
 
 function drawChart(ctx, data) {
   return new Chart(ctx, {
