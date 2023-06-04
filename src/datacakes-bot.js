@@ -94,7 +94,26 @@ const createStyle = () => {
       font-weight: normal;
       font-style: normal;
       color: #bbb;
-      line-height: 1.5;
+      line-height: 1.2;
+    }
+
+    #div-thoughts {
+      display: flex;
+      padding: 5px;
+      border-radius: 10px;
+      border: 1px;
+      background-color: rgb(20,110,130);
+    }
+
+    #thoughts {
+      font-size: 16px;
+      font-family: Verdana;
+      font-weight: normal;
+      font-style: normal;
+      color: #bbb;
+      line-height: 1;
+      overflow: scroll;
+      max-height: 200px;
     }
 
     #div-answer {
@@ -108,7 +127,7 @@ const createStyle = () => {
       font-weight: normal;
       font-style: normal;
       color: #fff;
-      line-height: 1.5;
+      line-height: 1.2;
     }
 
     #answer-chart {
@@ -134,7 +153,7 @@ const createStyle = () => {
       color: #ccc;
       border-radius: 100px; /* large enough */
       border: 1px solid #ccc;
-      font-size:18px;
+      font-size:16px;
       font-weight: normal;
       font-style: italic; /* so the mouth is crooked */
       cursor: pointer;
@@ -146,6 +165,13 @@ const createStyle = () => {
       color: rgb(30,121,141);
     }
 
+    #answer-flag.flagged {
+      cursor: default;
+      background-color: rgb(30,121,141);
+      border: 1px solid #FA9137;
+      color: #FA9137;
+    }
+
     #error {
       display: block;
       font-size: 18px;
@@ -153,7 +179,7 @@ const createStyle = () => {
       font-weight: normal;
       font-style: normal;
       color: #eed45d;
-      line-height: 1.5;
+      line-height: 1.2;
     }
     .QCzoEc {
       display: inline-block;
@@ -205,7 +231,10 @@ const createBot = () => {
         <span id="error"></span>
       </div>
       <div id="div-question">
-        <span id="question"></span>
+        <div id="question"></div>
+      </div>
+      <div id="div-thoughts">
+        <div id="thoughts"></div>
       </div>
       <div id="div-answer">
         <div id=div-answer-content">
@@ -305,6 +334,8 @@ class Bot extends HTMLElement {
     this.input = '';
     this.question = '';
     this.answerText = '';
+    this.answerData = {};
+    this.thoughtsText = '';
     this.error = '';
     this.query_id = null;
     this.baseURL = 'https://bots1.datacakes.ai';
@@ -357,7 +388,7 @@ class Bot extends HTMLElement {
   }
 
   async checkBotExists(botId) {
-    if (botId.trim() === '') {
+    if (botId.trim() === '' | botId == null | botId === 'null') {
       this._botExists = false;
     } else {
       this._botExists = (await checkBotExists(this.baseURL, botId)).status === 'ok'? true: false;
@@ -375,19 +406,35 @@ class Bot extends HTMLElement {
 
   async handleRequest() {
     if (this._botExists) {
+      this.question = this.input;
+      this.thoughtsText = '';
+      this.answerText = '';
+      this.answerData = {};
+      this.error = '';
       this._thinking = true;
       this.render();
-      const response = await fetchAnswer(this.baseURL, this.botId, this.input, this.chatHistory);
+
+      const sseChannel = Math.random().toString(36).slice(2);
+      const sseSource = new EventSource(this.baseURL + '/subscribe/' + sseChannel);
+      /* Need to bind "handleSSE" to the _widget_ ("this"), else
+       * the "this" within handleSSE will refer to the EventSource object
+       * (which has no access to, say, thoughtsText).
+       * Source: https://trekinbami.medium.com/its-not-magic-using-bind-in-javascript-18834e95cd8e
+      */
+      sseSource.addEventListener('message', this.handleSSE.bind(this));
+
+      const response = await fetchAnswer(
+          this.baseURL, this.botId, this.input,
+          this.chatHistory, sseChannel);
+      sseSource.close();
       this._thinking = false;
       this._collapsed = false;
 
       if (response.status == 'ok') {
-
         this.input = '';
-        this.question = response.data.question.trim();
         this.answerText = response.data.answer.trim();
         this.queryId = response.query_id;
-        this.answerData = response.data.data;
+        this.answerData = response.data.data ?? {};
         this.error = '';
         this.chatHistory = [this.question, this.answerText];
       } else if (response.status == 'error') {
@@ -409,6 +456,11 @@ class Bot extends HTMLElement {
     this.render();
   }
 
+  handleSSE(event) {
+    this.thoughtsText += JSON.parse(event['data'])['text'];
+    this.render();
+  }
+
   static get observedAttributes() {
     return ['bot-id', 'question'];
   }
@@ -424,14 +476,14 @@ class Bot extends HTMLElement {
       this.render();
     } else if (name === 'question') {
       this.input = newValue;
-      this.handleRequest(newValue);
+      this.handleRequest();
     }
   }
 
   set botId(value) {
     this._botId = value;
     // Need to send this._botId, not this.botId, since
-    // the latter is updated only _after_ this function returns.
+    // the latter is updated only _after_ "set botId()" returns.
     this.checkBotExists(this._botId);
   }
 
@@ -458,25 +510,20 @@ class Bot extends HTMLElement {
 
     this._shadow.getElementById('input').value = this.input;
 
+    /* FLAGGED */
     if (this._flagged) {
-        this._shadow.getElementById('answer-flag').style.cursor = 'default';
-        this._shadow.getElementById('answer-flag').style.background = '#FA9137';
-        this._shadow.getElementById('answer-flag').style.border = '#FA9137';
-        this._shadow.getElementById('answer-flag').style.opacity = .5;
-        this._shadow.getElementById('answer-flag').style.color = 'rgb(30,121,141)';
+        this._shadow.getElementById('answer-flag').className = 'flagged';
     } else {
-        this._shadow.getElementById('answer-flag').style.cursor = 'pointer';
-        this._shadow.getElementById('answer-flag').style.background = '';
-        this._shadow.getElementById('answer-flag').style.border = '';
-        this._shadow.getElementById('answer-flag').style.opacity = 1;
+        this._shadow.getElementById('answer-flag').classList.remove('flagged');
     }
 
+    /* RESPONSE CONTAINER */
     if (
         this._thinking ||
         (!this._collapsed &&
-            (this.question.length
-                || this.answerText.length
-                || this.answerData
+            (this.question.trim().length
+                || this.answerText.trim().length
+                || Object.keys(this.answerData).length
                 || this.error.length)
         )
     ) {
@@ -485,12 +532,14 @@ class Bot extends HTMLElement {
       this._shadow.getElementById('containerAnswer').style.display = 'none';
     }
 
+    /* THINKING */
     if (this._thinking) {
       this._shadow.getElementById('div-collapser').style.display = 'none';
     } else {
       this._shadow.getElementById('div-collapser').style.display = 'block';
     }
-
+    
+    /* QUESTION */
     if (this.question.trim().length) {
       this._shadow.getElementById('div-question').style.display = 'block';
       this._shadow.getElementById('question').innerText = 'Q: ' + this.question;
@@ -498,12 +547,23 @@ class Bot extends HTMLElement {
       this._shadow.getElementById('div-question').style.display = 'none';
     }
 
-    if (this.answerText.length || this.answerData) {
+    /* THOUGHTS */
+    if (this.thoughtsText.trim().length) {
+      this._shadow.getElementById('div-thoughts').style.display = 'block';
+      let thoughts = this._shadow.getElementById('thoughts')
+      thoughts.innerText = this.thoughtsText;
+      thoughts.scrollTop = thoughts.scrollHeight;
+    } else {
+      this._shadow.getElementById('div-thoughts').style.display = 'none';
+    }
+
+    /* ANSWER */
+    if (this.answerText.trim().length || Object.keys(this.answerData).length) {
       this._shadow.getElementById('div-answer').style.display = 'flex';
       if (this.answerText.length) {
         this._shadow.getElementById('answer-text').innerText = 'A: ' + this.answerText;
       }
-      if (this.answerData) {
+      if (Object.keys(this.answerData).length) {
         if (this._chart != null) {
           this._chart.destroy();
         }
@@ -520,6 +580,7 @@ class Bot extends HTMLElement {
       this._shadow.getElementById('div-answer').style.display = 'none';
     }
 
+    /* ERROR */
     if (this.error.length) {
       this._shadow.getElementById('div-error').style.display = 'block';
       this._shadow.getElementById('error').innerText = this.error;
@@ -562,11 +623,13 @@ async function checkBotExists(base_url, bot_id) {
 }
 
 
-async function fetchAnswer(base_url, bot_id, q, chat_history) {
+async function fetchAnswer(base_url, bot_id, q, chat_history, sse_channel) {
+  const query_id = Math.random().toString(36).slice(2);
   const response = await fetch(`${base_url}/bot/${bot_id}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ q: q, chat_history: chat_history }),
+    body: JSON.stringify(
+        { q: q, chat_history: chat_history, sse_channel: sse_channel, query_id: query_id }),
   });
 
   return response.json();
