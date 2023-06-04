@@ -94,7 +94,7 @@ const createStyle = () => {
       font-weight: normal;
       font-style: normal;
       color: #bbb;
-      line-height: 1.5;
+      line-height: 1.2;
     }
 
     #div-thoughts {
@@ -127,7 +127,7 @@ const createStyle = () => {
       font-weight: normal;
       font-style: normal;
       color: #fff;
-      line-height: 1.5;
+      line-height: 1.2;
     }
 
     #answer-chart {
@@ -182,7 +182,7 @@ const createStyle = () => {
       font-weight: normal;
       font-style: normal;
       color: #eed45d;
-      line-height: 1.5;
+      line-height: 1.2;
     }
     .QCzoEc {
       display: inline-block;
@@ -341,28 +341,13 @@ class Bot extends HTMLElement {
     this.thoughtsText = '';
     this.error = '';
     this.query_id = null;
-    this.baseURL = 'http://localhost:5000';
     this.baseURL = 'https://bots1.datacakes.ai';
-    /*
-    this._sseChannel = Math.random().toString(36).slice(2);
-    this._sseSource = new EventSource(
-        this.baseURL + '/subscribe/' + this._sseChannel);
-    */
     this._flagged = false;
     this._collapsed = true;
     this._chart = null;
   }
 
   connectedCallback() {
-    /* Need to bind "handleSSE" to the _widget_ ("this"), else
-     * the "this" within handleSSE will refer to the EventSource object
-     * (which has no access to, say, thoughtsText).
-     * Source: https://trekinbami.medium.com/its-not-magic-using-bind-in-javascript-18834e95cd8e
-    */
-    /*
-    this._sseSource
-      .addEventListener('message', this.handleSSE.bind(this));
-    */
     this._shadow
       .getElementById('input')
       .addEventListener('focus', e => {
@@ -434,12 +419,16 @@ class Bot extends HTMLElement {
 
       const sseChannel = Math.random().toString(36).slice(2);
       const sseSource = new EventSource(this.baseURL + '/subscribe/' + sseChannel);
+      /* Need to bind "handleSSE" to the _widget_ ("this"), else
+       * the "this" within handleSSE will refer to the EventSource object
+       * (which has no access to, say, thoughtsText).
+       * Source: https://trekinbami.medium.com/its-not-magic-using-bind-in-javascript-18834e95cd8e
+      */
       sseSource.addEventListener('message', this.handleSSE.bind(this));
 
-      const queryId = Math.random().toString(36).slice(2);
       const response = await fetchAnswer(
           this.baseURL, this.botId, this.input,
-          this.chatHistory, sseChannel, queryId);
+          this.chatHistory, sseChannel);
       sseSource.close();
       this._thinking = false;
       this._collapsed = false;
@@ -448,9 +437,7 @@ class Bot extends HTMLElement {
         this.input = '';
         this.answerText = response.data.answer.trim();
         this.queryId = response.query_id;
-        this.answerData = response.data.data;
-        console.log('*****');
-        console.log(response.data);
+        this.answerData = response.data.data ?? {};
         this.error = '';
         this.chatHistory = [this.question, this.answerText];
       } else if (response.status == 'error') {
@@ -567,7 +554,7 @@ class Bot extends HTMLElement {
     if (this.thoughtsText.trim().length) {
       this._shadow.getElementById('div-thoughts').style.display = 'block';
       let thoughts = this._shadow.getElementById('thoughts')
-      thoughts.innerText = 'AI: ' + this.thoughtsText;
+      thoughts.innerText = this.thoughtsText;
       thoughts.scrollTop = thoughts.scrollHeight;
     } else {
       this._shadow.getElementById('div-thoughts').style.display = 'none';
@@ -639,7 +626,8 @@ async function checkBotExists(base_url, bot_id) {
 }
 
 
-async function fetchAnswer(base_url, bot_id, q, chat_history, sse_channel, query_id) {
+async function fetchAnswer(base_url, bot_id, q, chat_history, sse_channel) {
+  const query_id = Math.random().toString(36).slice(2);
   const response = await fetch(`${base_url}/bot/${bot_id}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
