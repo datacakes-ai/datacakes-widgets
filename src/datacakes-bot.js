@@ -8,7 +8,7 @@ const createStyle = () => {
     main {
       margin: 0 auto;
       position: relative;
-      max-width: 1200px;
+      max-width: 800px;
     }
 
     #containerQuestion {
@@ -69,9 +69,8 @@ const createStyle = () => {
 
     #containerResponse {
       display: none;
-      /*border: 1px solid #ccc;*/
-      /*background-color: rgb(30,121,141);*/
-      background-color: #0a1628; 
+      border: 1px solid #ccc;
+      background-color: rgb(30,121,141);
       border-radius: 2rem;
       width: 100%;
       text-align: left;
@@ -108,7 +107,7 @@ const createStyle = () => {
 
     #thoughts {
       overflow: scroll;
-      max-height: 400px;
+      max-height: 300px;
     }
 
     #div-answer-content {
@@ -387,8 +386,6 @@ class Bot extends HTMLElement {
     this.error = '';
     this.query_id = null;
     this.baseURL = 'https://bots1.datacakes.ai';
-    this.baseURL = 'http://localhost:5000';
-    this.baseURL = 'https://bots-staging-l7tyqg5pla-uc.a.run.app';
     this._flagged = false;
     this._collapsed = true;
     this._chart = null;
