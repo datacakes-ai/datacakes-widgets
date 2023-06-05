@@ -8,7 +8,7 @@ const createStyle = () => {
     main {
       margin: 0 auto;
       position: relative;
-      max-width: 800px;
+      max-width: 1200px;
     }
 
     #containerQuestion {
@@ -69,8 +69,9 @@ const createStyle = () => {
 
     #containerResponse {
       display: none;
-      border: 1px solid #ccc;
-      background-color: rgb(30,121,141);
+      /*border: 1px solid #ccc;*/
+      /*background-color: rgb(30,121,141);*/
+      background-color: #0a1628;
       border-radius: 2rem;
       width: 100%;
       text-align: left;
@@ -107,7 +108,7 @@ const createStyle = () => {
 
     #thoughts {
       overflow: scroll;
-      max-height: 300px;
+      max-height: 400px;
     }
 
     #div-answer-content {
