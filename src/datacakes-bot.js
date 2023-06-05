@@ -8,7 +8,7 @@ const createStyle = () => {
     main {
       margin: 0 auto;
       position: relative;
-      max-width: 800px;
+      max-width: 1200px;
     }
 
     #containerQuestion {
@@ -25,7 +25,7 @@ const createStyle = () => {
       font-size: 1.5rem;
       border: 1px solid #ccc;
       padding: 0.5rem 3rem 0.5rem 3rem;
-      border-radius: 100px; /*sufficiently large so it's circlular*/
+      border-radius: 100px; /*sufficiently large so it's circular*/
       box-shadow: 0 0 5px #fff;
       background-color: #fff;
     }
@@ -67,7 +67,7 @@ const createStyle = () => {
       padding: 0rem;
     }
 
-    #containerAnswer {
+    #containerResponse {
       display: none;
       border: 1px solid #ccc;
       background-color: rgb(30,121,141);
@@ -106,14 +106,12 @@ const createStyle = () => {
     }
 
     #thoughts {
-      font-size: 16px;
-      font-family: Verdana;
-      font-weight: normal;
-      font-style: normal;
-      color: #ccc;
-      line-height: 1.1;
       overflow: scroll;
-      max-height: 300px;
+      max-height: 400px;
+    }
+
+    #div-answer-content {
+      flex: 1;
     }
 
     #div-answer {
@@ -131,30 +129,35 @@ const createStyle = () => {
     }
 
     #answer-table {
-      margin: 0 auto;
+      margin: 10px auto;
       font-size: 18px;
       font-family: Verdana;
       font-weight: normal;
       font-style: normal;
-      color: #fff;
       line-height: 1.2;
+      display: none;
+      justify-content: center;
     }
 
     table {
       border-collapse: collapse;
-      width: 100%;
+      width: 90%;
     }
 
     th, td {
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      padding: 8px;
+      border: 1px solid rgb(20,100,120);
+      padding: 5px;
       text-align: left;
-      background-color: rgb(40,140,160);
+    }
+
+    td {
+      background-color: #fff;
+      color: rgb(30,121,141);
     }
 
     th {
       background-color: rgb(20,100,120);
+      color: #fff;
     }
 
     #answer-chart {
@@ -164,10 +167,12 @@ const createStyle = () => {
       display: none;
       padding: 5px;
       border-radius: 5px;
+      justify-content: center;
     }
     
     #answer-tools {
       margin-left: auto;
+      width: 30px;
     }
 
     #answer-flag {
@@ -238,6 +243,19 @@ const createStyle = () => {
       padding: 5px 0px;
     }
 
+    code {
+      font-size: 12px;
+      color: lightgreen;
+    }
+
+    span.thoughts {
+      font-size: 16px;
+      font-family: Verdana;
+      font-weight: normal;
+      font-style: normal;
+      line-height: 1.1;
+      color: yellow;
+    }
   `;
 
   return styleElement;
@@ -253,7 +271,7 @@ const createBot = () => {
       </div>
       <push-to-talk-button id="microphoneButton" size="2.8rem" class="endAdornment" fontsize="0.90rem" backgroundcolor="#104864" intro="Tap or hold for voice search" showtime="30000" appid="f6682864-81dd-4e5c-baf6-b4ef92cd89f5"/>
     </div>
-    <div id="containerAnswer">
+    <div id="containerResponse">
       <div id="div-error">
         <span id="error"></span>
       </div>
@@ -264,7 +282,7 @@ const createBot = () => {
         <div id="thoughts"></div>
       </div>
       <div id="div-answer">
-        <div id=div-answer-content">
+        <div id="div-answer-content">
           <div id="answer-text"></div>
           <div id="answer-table"></div>
           <canvas id="answer-chart"></canvas>
@@ -363,10 +381,13 @@ class Bot extends HTMLElement {
     this.question = '';
     this.answerText = '';
     this.answerData = [];
+    this.answerChartData = {};
     this.thoughtsText = '';
     this.error = '';
     this.query_id = null;
     this.baseURL = 'https://bots1.datacakes.ai';
+    this.baseURL = 'http://localhost:5000';
+    this.baseURL = 'https://bots-staging-l7tyqg5pla-uc.a.run.app';
     this._flagged = false;
     this._collapsed = true;
     this._chart = null;
@@ -438,6 +459,7 @@ class Bot extends HTMLElement {
       this.thoughtsText = '';
       this.answerText = '';
       this.answerData = [];
+      this.answerChartData = {};
       this.error = '';
       this._thinking = true;
       this.render();
@@ -460,9 +482,10 @@ class Bot extends HTMLElement {
 
       if (response.status == 'ok') {
         this.input = '';
-        this.answerText = response.data.answer.trim();
+        this.answerText = response.data.answer ?? '';
         this.queryId = response.query_id;
         this.answerData = response.data.data ?? [];
+        this.answerChartData = response.data.chart_data ?? {};
         this.error = '';
         this.chatHistory = [this.question, this.answerText];
       } else if (response.status == 'error') {
@@ -485,7 +508,53 @@ class Bot extends HTMLElement {
   }
 
   handleSSE(event) {
-    this.thoughtsText += JSON.parse(event['data'])['text'];
+    const thought = JSON.parse(event['data']);
+    this._thoughtSource ??= null;
+    let start_tag = '', end_tag = '';
+    if (thought['source'] != this._thoughtSource) {
+      if (this._thoughtSource) {
+        switch (this._thoughtSource) {
+          case 'llm':
+            end_tag = '</span>';
+            break;
+          case 'llm-code':
+            end_tag = '</code></pre>';
+            break;
+          case 'python':
+            end_tag = '</span>';
+            break;
+          case 'python-code':
+            end_tag = '</code></pre>';
+            break;
+        }
+      }
+      switch (thought['source']) {
+        case 'llm':
+          start_tag = '<span class="thoughts">';
+          break;
+        case 'llm-code':
+          start_tag = '<pre><code>';
+          break;
+        case 'python':
+          start_tag = '<span class="thoughts">';
+          break;
+        case 'python-code':
+          start_tag = '<pre><code>';
+          break;
+      }
+      this._thoughtSource = thought['source'];
+    }
+
+    switch(thought['source']) {
+      case 'llm':
+        thought['text'] = thought['text'].replace('\n', '<br>');
+        break;
+      case 'python':
+        thought['text'] = thought['text'].replace('\n', '<br>');
+        break;
+    }
+
+    this.thoughtsText += end_tag + start_tag + thought['text'];
     this.render();
   }
 
@@ -555,9 +624,9 @@ class Bot extends HTMLElement {
                 || this.error.length)
         )
     ) {
-      this._shadow.getElementById('containerAnswer').style.display = 'block';
+      this._shadow.getElementById('containerResponse').style.display = 'block';
     } else {
-      this._shadow.getElementById('containerAnswer').style.display = 'none';
+      this._shadow.getElementById('containerResponse').style.display = 'none';
     }
 
     /* THINKING */
@@ -579,40 +648,50 @@ class Bot extends HTMLElement {
     if (this.thoughtsText.trim().length) {
       this._shadow.getElementById('div-thoughts').style.display = 'block';
       const thoughts = this._shadow.getElementById('thoughts')
-      thoughts.innerHTML = '<pre>' + this.thoughtsText + '</pre>';
+      thoughts.innerHTML = this.thoughtsText;
       thoughts.scrollTop = thoughts.scrollHeight;
     } else {
       this._shadow.getElementById('div-thoughts').style.display = 'none';
     }
 
-    /* ANSWER */
-    if (this.answerText.trim().length || this.answerData.length) {
+    /* ANSWER DIV */
+    if (this.answerText.trim().length || this.answerData.length || Object.keys(this.answerChartData).length) {
       this._shadow.getElementById('div-answer').style.display = 'flex';
-      if (this.answerText.length) {
-        this._shadow.getElementById('answer-text').innerText = 'A: ' + this.answerText;
-      }
-
-      if (this.answerData.length) {
-        drawTable(this._shadow.getElementById('answer-table'), this.answerData);
-      } else {
-        this._shadow.getElementById('answer-table').style.display = 'none';
-      }
-
-      if (this.answerChartData) {
-        if (this._chart != null) {
-          this._chart.destroy();
-        }
-        const canvas = this._shadow.getElementById('answer-chart');
-        canvas.style.display = 'block';
-
-        this._chart = drawChart(canvas.getContext('2d'), this.answerData);
-      } else {
-        this._shadow.getElementById('answer-chart').style.display = 'none';
-      }
-
-        
     } else {
       this._shadow.getElementById('div-answer').style.display = 'none';
+    }
+
+    /* ANSWER TEXT */
+    const answerTextElt = this._shadow.getElementById('answer-text');
+    if (this.answerText.trim().length) {
+      answerTextElt.style.display = 'block';
+      answerTextElt.innerText = 'A: ' + this.answerText;
+    } else {
+      answerTextElt.style.display = 'none';
+    }
+
+    /* ANSWER TABLE */
+    const answerTableDiv = this._shadow.getElementById('answer-table');
+    while (answerTableDiv.hasChildNodes()) {
+      answerTableDiv.removeChild(answerTableDiv.firstChild);
+    }
+    if (this.answerData.length) {
+      answerTableDiv.style.display = 'flex';
+      drawTable(this._shadow.getElementById('answer-table'), this.answerData);
+    } else {
+      answerTableDiv.style.display = 'none';
+    }
+
+    /* ANSWER CHART */
+    if (this._chart != null) {
+      this._chart.destroy();
+    }
+    const answerChartCanvas = this._shadow.getElementById('answer-chart');
+    if (Object.keys(this.answerChartData).length) {
+      answerChartCanvas.style.display = 'flex';
+      this._chart = drawChart(answerChartCanvas.getContext('2d'), this.answerChartData);
+    } else {
+      answerChartCanvas.style.display = 'none';
     }
 
     /* ERROR */
