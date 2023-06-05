@@ -69,8 +69,9 @@ const createStyle = () => {
 
     #containerResponse {
       display: none;
-      border: 1px solid #ccc;
-      background-color: rgb(30,121,141);
+      /*border: 1px solid #ccc;*/
+      /*background-color: rgb(30,121,141);*/
+      background-color: #0a1628; 
       border-radius: 2rem;
       width: 100%;
       text-align: left;
@@ -99,7 +100,7 @@ const createStyle = () => {
 
     #div-thoughts {
       display: flex;
-      padding: 5px;
+      padding: 10px;
       border-radius: 10px;
       border: 1px;
       background-color: rgb(20,100,120);
@@ -549,8 +550,12 @@ class Bot extends HTMLElement {
       case 'llm':
         thought['text'] = thought['text'].replace('\n', '<br>');
         break;
+      case 'llm-code':
+        break;
       case 'python':
         thought['text'] = thought['text'].replace('\n', '<br>');
+        break;
+      case 'python-code':
         break;
     }
 
