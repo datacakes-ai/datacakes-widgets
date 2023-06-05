@@ -387,6 +387,7 @@ class Bot extends HTMLElement {
     this.error = '';
     this.query_id = null;
     this.baseURL = 'https://bots1.datacakes.ai';
+    this.baseURL = 'https://bots-staging-l7tyqg5pla-uc.a.run.app';
     this._flagged = false;
     this._collapsed = true;
     this._chart = null;
