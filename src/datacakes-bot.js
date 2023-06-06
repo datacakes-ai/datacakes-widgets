@@ -8,7 +8,7 @@ const createStyle = () => {
     main {
       margin: 0 auto;
       position: relative;
-      max-width: 1200px;
+      max-width: 1600px;
     }
 
     #containerQuestion {
@@ -245,16 +245,16 @@ const createStyle = () => {
     }
 
     code {
-      font-size: 12px;
+      font-size: 13px;
       color: lightgreen;
     }
 
     span.thoughts {
-      font-size: 16px;
+      font-size: 18px;
       font-family: Verdana;
       font-weight: normal;
       font-style: normal;
-      line-height: 1.1;
+      line-height: 1.3;
       color: yellow;
     }
   `;
@@ -384,6 +384,7 @@ class Bot extends HTMLElement {
     this.answerData = [];
     this.answerChartData = {};
     this.thoughtsText = '';
+    this._thoughtSource = null;
     this.error = '';
     this.query_id = null;
     this.baseURL = 'https://bots1.datacakes.ai';
@@ -457,6 +458,7 @@ class Bot extends HTMLElement {
     if (this._botExists) {
       this.question = this.input;
       this.thoughtsText = '';
+      this._thoughtSource = null;
       this.answerText = '';
       this.answerData = [];
       this.answerChartData = {};
@@ -509,7 +511,6 @@ class Bot extends HTMLElement {
 
   handleSSE(event) {
     const thought = JSON.parse(event['data']);
-    this._thoughtSource ??= null;
     let start_tag = '', end_tag = '';
     if (thought['source'] != this._thoughtSource) {
       if (this._thoughtSource) {
