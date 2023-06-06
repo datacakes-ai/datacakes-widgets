@@ -483,7 +483,6 @@ class Bot extends HTMLElement {
       this._collapsed = false;
 
       if (response.status == 'ok') {
-        this.input = '';
         this.answerText = response.data.answer ?? '';
         this.queryId = response.query_id;
         this.answerData = response.data.data ?? [];
@@ -642,7 +641,7 @@ class Bot extends HTMLElement {
     }
     
     /* QUESTION */
-    if (this.question.trim().length) {
+    if (this.question.trim().length && 0) {
       this._shadow.getElementById('div-question').style.display = 'block';
       this._shadow.getElementById('question').innerText = 'Q: ' + this.question;
     } else {
