@@ -491,7 +491,7 @@ class Bot extends HTMLElement {
         this.question = '';
         this.answerText = '';
         this.queryId = null;
-        this.error = "I'm overwhelmed! Try reloading....";
+        this.error = response.message;
       }
     } else {
       this.input = '';
@@ -501,6 +501,7 @@ class Bot extends HTMLElement {
       this.queryId = null;
     }
     this._flagged = false;
+    this._thoughtSource = null;
 
     this.render();
   }
