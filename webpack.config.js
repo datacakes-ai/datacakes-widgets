@@ -1,30 +1,40 @@
 const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const fs = require('fs');
-
-const entry = {};
-const components = fs
-  .readdirSync(path.join(__dirname, 'src'))
-  .filter(file => file.endsWith('.js'));
-components.forEach(component => {
-  const name = component.split('.js')[0];
-  entry[name] = `./src/${component}`;
-});
 
 module.exports = {
-  mode: 'development',
-  entry,
+  entry: './src/index.tsx', // Entry point of your application
   output: {
-    path: path.join(__dirname, 'dist'),
-    filename: '[name].js',
+    path: path.resolve(__dirname, 'build'),
+    filename: 'widget.js',
   },
   module: {
-    rules: [],
+    rules: [
+      {
+        test: /\.(ts|tsx)$/, // Add support for TypeScript files
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: [
+              '@babel/preset-env',
+              '@babel/preset-react',
+              '@babel/preset-typescript', // Add TypeScript preset
+            ],
+          },
+        },
+      },
+      {
+        test: /\.(png|jpeg|jpg|gif|svg)$/,
+        use: 'file-loader',
+      },
+      {
+        test: /\.css$/i,
+        include: path.resolve(__dirname, 'src'),
+        use: ['style-loader', 'css-loader', 'postcss-loader'],
+      },
+    ],
   },
-  plugins: [
-    new HtmlWebpackPlugin({
-      template: path.join(__dirname, 'public', 'index.html'),
-      hash: true,
-    }),
-  ],
+  resolve: {
+    extensions: ['.ts', '.tsx', '.js', '.jsx'], // Resolve both JS and TS files
+  },
+  mode: 'production', // Set production mode for optimization
 };
