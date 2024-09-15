@@ -1,0 +1,58 @@
+{
+  "status": "ok",
+  "data": {
+    "q": "List first 2 customers",
+    "columns_map": {
+      "Index": "Customer Number",
+      "Customer Id": "Customer ID",
+      "First Name": "First Name",
+      "Last Name": "Last Name",
+      "Company": "Company Name",
+      "City": "City",
+      "Country": "Country",
+      "Phone 1": "Primary Phone",
+      "Phone 2": "Secondary Phone",
+      "Email": "Email Address",
+      "Subscription Date": "Subscription Date",
+      "Website": "Website URL"
+    },
+    "answer": "This table displays detailed information for the first two customers, including personal details, contact information, and subscription data.",
+    "insight": "The first two customers listed are Sheryl Baxter from Chile associated with Rasmussen Group and Preston Lozano from Djibouti associated with Vega-Gentry, with their subscriptions starting on August 24, 2020, and April 23, 2021, respectively.",
+    "recommendation": null,
+    "data": [
+      {
+        "Customer Number": 1,
+        "Customer ID": "DD37Cf93aecA6Dc",
+        "First Name": "Sheryl",
+        "Last Name": "Baxter",
+        "Company Name": "Rasmussen Group",
+        "City": "East Leonard",
+        "Country": "Chile",
+        "Primary Phone": "229.1.5154",
+        "Secondary Phone": "397.9.0519x718",
+        "Email Address": "zunigavanessa@smith.info",
+        "Subscription Date": "2020-08-24",
+        "Website URL": "http://www.stephenson.com/"
+      },
+      {
+        "Customer Number": 2,
+        "Customer ID": "1Ef7b82A4CAAD10",
+        "First Name": "Preston",
+        "Last Name": "Lozano",
+        "Company Name": "Vega-Gentry",
+        "City": "East Jimmychester",
+        "Country": "Djibouti",
+        "Primary Phone": "5153435776",
+        "Secondary Phone": "686-620-1820x944",
+        "Email Address": "vmata@colon.com",
+        "Subscription Date": "2021-04-23",
+        "Website URL": "http://www.hobbs.com/"
+      }
+    ],
+    "chart_data": null,
+    "chart_html": ""
+  },
+  "query_id": "k12l92hd6t",
+  "answered_at": "2024-09-13T04:37:21.045199+00:00",
+  "runtime": 17.147972106933594
+}
