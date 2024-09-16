@@ -1,5 +1,19 @@
 
-## Installation
+## Compilation
+
+To compile the code and create the widget, run the following command: 
+
+```
+npm run build
+```
+OR
+
+```
+yarn build
+```
+
+
+## Usage
 
 ### 1. Obtain a CakeId
 
