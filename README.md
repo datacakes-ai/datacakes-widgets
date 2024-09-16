@@ -4,7 +4,6 @@
 ### 1. Obtain a CakeId
 
 If you don't have a CakeId, create one [here](https://www.datacakes.ai/): 
-```
 
 ### 2. Add custom element to your source code.
 
