@@ -1,10 +1,10 @@
-import { getCodeSvcURL } from '../utils/main'
+import { DATACAKES_CODE_SERVICE_URL } from '../config/main'
 
 export const startSSE = (
   sseChannel: string,
   onMessageReceived: (this: EventSource, ev: MessageEvent<any>) => any,
 ): EventSource => {
-  const sseSource = new EventSource(getCodeSvcURL() + '/subscribe/' + sseChannel)
+  const sseSource = new EventSource(DATACAKES_CODE_SERVICE_URL + '/subscribe/' + sseChannel)
   /* Need to bind "handleSSE" to the _widget_ ("this"), else
    * the "this" within handleSSE will refer to the EventSource object
    * (which has no access to, say, thoughtsText).

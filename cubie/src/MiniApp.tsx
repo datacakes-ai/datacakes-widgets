@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import data from './assets/data.json';
 import AnswerSection from './modules/Answermodule/AnswerSection';
 import QuestionField from './modules/Answermodule/QuestionField';
 import useApp from './hooks/useApp'
 import { observer } from 'mobx-react'
+import loadinggif from './assets/loading.gif'
 
 interface MiniAppProps {
   closeWidget: () => void;
@@ -16,25 +16,6 @@ const MiniApp: React.FC<MiniAppProps> = observer(({ closeWidget, cakeId }) => {
 
   const app = useApp();
 
-  useEffect(() => {
-    if (cakeId) {
-      app.setCakeId(cakeId);
-      app.updateSources();
-    }
-  }, [cakeId])
-
-  const handleSearch = () => {
-    // Use the data from data.json
-    setSearchResult({
-      answerStr: data.data.answer,
-      answerData: data.data.data,
-      answerChartData: data.data?.chart_data,
-      answerChartHtml: data.data?.chart_html,
-      answerInsight: data.data?.insight,
-      answerRecommendation: data.data.recommendation
-    });
-  };
-
   return (
     <div style={overlayStyle}>
       <button onClick={closeWidget} style={closeButton}>
@@ -44,17 +25,24 @@ const MiniApp: React.FC<MiniAppProps> = observer(({ closeWidget, cakeId }) => {
         </svg>
       </button>
       <div style={modalStyle}>
-        <h2>Welcome to the Mini App!</h2>
+        <h2>Ask Cubie</h2>
+        
         <QuestionField
           placeholder="Ask a question about your data..."
           autoFocus
           onFinish={(value: string) => {
             app.setInput(value)
             app.obtainAnswer()
-            // handleSearch();
           }}
           disabled={app.isThinking}
         />
+
+        {app.isThinking &&
+          <div style={{display:'flex', justifyContent: 'center'}}>
+            <img src={loadinggif} style={{display:'inline', height:'20px'}}/>
+          </div>
+        }
+
         <div style={{ overflow: 'auto', minHeight: '84%' }}>
           {app.answerText && (
             <AnswerSection

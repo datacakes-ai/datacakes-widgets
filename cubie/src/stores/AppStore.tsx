@@ -1,30 +1,19 @@
 import { makeAutoObservable } from 'mobx'
 import { error, success } from '../core/services/alerts'
 import { startSSE, stopSSE } from '../core/services/messages'
-import { fetchDashboardItems, fetchAnswer, fetchSources, flagAnswer, postToDashboard, postToRunDashboardItem, postDeleteDashboardItem } from '../core/services/code_service'
+import { fetchSources, fetchAnswer, flagAnswer } from '../core/services/code_service'
 import { IChartData } from '../core/types/code_service/IChartData'
-import { IDataObject } from '../core/types/code_service/IDataObject'
-import { getCakeIdFromUrl, randomString } from '../core/utils/main'
-import { postModel } from '../core/services/source_service'
-import { IDashboardItem } from '../core/types/code_service/IDashboardItem'
-import { LOGIN_URL } from '../core/config/main'
-import { IDataRecipe } from '../core/types/source_service/IDataRecipe'
-
+import { randomString } from '../core/utils/main'
 export class AppStore {
-
 
   // ### Cubie State ##################################################################################
   public cakeId: string
   public title: string = ''
-  public coreDataObjects: IDataObject[] = []
   public sampleQuestionVisible: boolean = true
   private eventSource: EventSource | null = null
   public sessionId: string | null = null
   public isInitializing: boolean = false
 
-  public setCoreDataObjects(sources: IDataObject[]) {
-    this.coreDataObjects = sources
-  }
   protected setSessionId(sessionId: string) {
     this.sessionId = sessionId
   }
@@ -40,11 +29,8 @@ export class AppStore {
   public setTitle(title: string) {
     this.title = title
   }
-  public setSampleQuestionVisible(visible: boolean) {
-    this.sampleQuestionVisible = visible
-    this.prepareForQuestion(false)
-  }
-  public async updateSources(isEndUserView?: boolean) {
+
+  public async updateSources() {
     if (!this.cakeId) {
       console.log("No cakeId, so no call to /initialize")
       return
@@ -54,40 +40,26 @@ export class AppStore {
       return
     }
     try {
-      this.setCoreDataObjects([])
-
+      console.log("Initializing...")
       this.setIsInitializing(true)
-      const response = await fetchSources(this.cakeId, isEndUserView)
+      const response = await fetchSources(this.cakeId)
       const sessionId = response.data.session_id
-
+      console.log("sessionId", sessionId)
       if (sessionId === null) {
         error('session_id not initialized, please try loading the page again')
         return;
       }
 
       this.setSessionId(sessionId)
-
-      const originalSources = response.data.core || []
-      if (originalSources.length === 0) {
-        error('tables didn’t load, please wait a few minutes and try again.')
-        return;
-      }
-      this.setCoreDataObjects(originalSources)
+      console.log("Done initializing... session ID = ", sessionId)
     } catch (e: any) {
-      if (e.response.status === 401 || e.response.status === 403) {
-        
-        this.setShowLoginModal(true)
-        // return
-      } else {
         this.handleError(e)
-      }
-    } finally {
+    } finally {7
       this.setIsInitializing(false)
     }
   }
   
   public resetCubie() {
-    this.setCoreDataObjects([])
     this.setCakeId('')
     this.setTitle('')
     this.sessionId = null
@@ -98,20 +70,11 @@ export class AppStore {
     this.answerData = []
     this.answerChartData = {}
     this.answerChartHtml = null
-    this.dashboardItems = []
     this.queryId = null
     this.isCached = false
     this.originalQueryId = null
     this.chatHistory = []
     console.log("Cubie reset")
-  }
-
-  public activateCake(cake: IDataRecipe) {
-    this.resetCubie()
-    this.setCakeId(cake.cake_id || '')
-    this.updateSources()
-    this.title = cake.title || ''
-    this.loadDashboardItems(this.cakeId)
   }
 
   // ### Question State ##################################################################################
@@ -147,14 +110,13 @@ export class AppStore {
     return this._chatHistory
   }
   public async obtainAnswer() {
-    this.setSampleQuestionVisible(false)
     this.prepareForQuestion(true)
 
     const sseChannel = randomString()
 
     this.eventSource = startSSE(sseChannel, this.handleSSE.bind(this))
 
-    let response = null
+    let response: any = null
 
     this.cancelRequest = new AbortController()
 
@@ -194,7 +156,6 @@ export class AppStore {
       this.answerChartData = response.data.chart_data ?? {}
       if (response.data.chart_html) {
         this.answerChartHtml = response.data.chart_html
-        console.log("AppStore.tsx line 191" + JSON.stringify(this.answerChartHtml))
       }
 
       this.error = ''
@@ -221,7 +182,6 @@ export class AppStore {
     this.cancelRequest = null
     this.eventSource = null
     this._collapsed = false
-    this.setSampleQuestionVisible(true)
     this.prepareForQuestion(false)
   }
 
@@ -267,16 +227,6 @@ export class AppStore {
     this.isPositiveFeedbackLeft = false
   }
 
-  public toggleActionLogOpenedInNewWindow() {
-    this.isActionLogOpenedInNewWindow = !this.isActionLogOpenedInNewWindow
-  }
-  public openActionLogOpenedInNewWindow() {
-    this.isActionLogOpenedInNewWindow = true
-  }
-  public closeActionLogOpenedInNewWindow() {
-    this.isActionLogOpenedInNewWindow = false
-  }
-
   public async flagAnswer(isPositive: boolean, feedback?: string) {
     if (this.queryId == null) {
       console.error('QueryId is not set. Cannot flag the answer.')
@@ -290,10 +240,9 @@ export class AppStore {
       this.setIsPositiveFeedbackLeft(false)
     }
 
-    let response = null
     try {
       const qid = (this.isCached ? this.originalQueryId : this.queryId) || ''
-      response = await flagAnswer(qid, isPositive, feedback, this.cakeId, this.question)
+      const response = await flagAnswer(qid, isPositive, feedback, this.cakeId, this.question)
       if (response.status !== 'ok') {
         this.handleError('Cannot flag the answer with queryId:' + qid)
         return
@@ -320,146 +269,16 @@ export class AppStore {
     this.isPositiveFeedbackLeft = value
   }
   
-  // ### Dashboard State ##################################################################################
-  public isDashboardLoading = false
-  public setIsDashboardLoading(value: boolean) {
-    this.isDashboardLoading = value
-  }
-  
-  public dashboardItems: IDashboardItem[] = []
-  public setDashboardItems(value: IDashboardItem[]) {
-    this.dashboardItems = value
-  }
-
-  public tempDashboardItems: IDashboardItem[] = []
-  public addToTempDashboardItems(value: IDashboardItem) {
-    this.tempDashboardItems.push(value)
-  }
-
-  public async saveToDashboard(cakeId: string, queryId: string, element: HTMLElement) {
-    element.innerText = "Saving..."
-    const qid = ((queryId == this.queryId && this.isCached) ? this.originalQueryId : queryId) || queryId
-    const result = await postToDashboard(cakeId, qid)
-    if (result) {
-      console.log(result)
-      element.innerText = "Saved"
-      setTimeout(()=>{
-        this.loadDashboardItems(this.cakeId)
-      }, 300)
-      
-    } else {
-      console.log("Save to Dashboard failed", result)
-    }
-  }
-
-  public async runAllDashboardItems(cakeId: string, element: HTMLElement) {
-    let awaitingNum = this.dashboardItems.length
-    this.dashboardItems.map(async (d: IDashboardItem) => {
-      console.log("rerunning item...")
-      const r = await postToRunDashboardItem(cakeId, d.query_id)
-      console.log(r)
-      console.log('done', element)
-      awaitingNum -= 1
-      if (awaitingNum <= 0)
-        await this.loadDashboardItems(cakeId)
-    })
-  }
-
-  public async runDashboardItem(cakeId: string, queryId: string, element: HTMLElement) {
-    element.innerText = "Running..."
-    const onclick_func = element.onclick
-    element.onclick = null
-    const result = await postToRunDashboardItem(cakeId, queryId)
-    if (result.status == 'ok') {
-      element.innerText = "Done"
-      setTimeout(()=>{
-        element.innerText = "Re-run analysis"
-      }, 3000)
-    } else {
-      element.onclick = onclick_func
-      element.innerText = "Run failed... Retry?"
-    }
-  }
-
-  public async deleteDashboardItem(cakeId: string, queryId: string) {
-    const result = await postDeleteDashboardItem(cakeId, queryId)
-    if (result.status='ok')
-      return true
-  }
-
-  public async loadDashboardItems(cakeId: string) {
-    let response = null
-    try {
-      console.log('Loading dashboard items')
-      this.setIsDashboardLoading(true)
-      response = await fetchDashboardItems(cakeId)
-      this.setIsDashboardLoading(false)
-    } catch (e: any) {
-      console.log(e)
-      this.handleError(e)
-      this.setIsDashboardLoading(false)
-      return
-    }
-    console.log("loadDashboardItems response", response)
-    if (response.status == 'ok') {
-      console.log(response.data)
-      this.setDashboardItems(response.data)
-      console.log(this.dashboardItems)
-    } else {
-      console.log(response.message)
-    }
-  }
-
   // ### Constructor ##################################################################################
 
   constructor() {
     makeAutoObservable(this)
-
-    this.cakeId = getCakeIdFromUrl()
   }
 
   // ### Other ##################################################################################
 
   public error: string = ''
-  public showLoginModal = false
-  // public isWelcomeModalOpen = true
-
-  // @todo: Rework it: move the modal state to AppStore instead.
-  // public modalCloseHandler: Function | null = null
-
-  // // isWelcomeModal initiated for CreateDataCake event
-  // public isWelcomeTriggedForCreateDataCake: boolean = false;
-
-
-  public removeOpenModalParam() {
-    window.history.replaceState({}, document.title, window.location.pathname)
-  }
-
-  public setShowLoginModal(show: boolean) {
-    this.showLoginModal = show
-  }
-
-  // // @todo: Rework it: move the modal state to AppStore instead.
-  // public setModalCloseHandler(modalCloseHandler: Function) {
-  //   this.modalCloseHandler = modalCloseHandler
-  // }
-  // public callModalCloseHandler() {
-  //   if (this.modalCloseHandler == null) {
-  //     return
-  //   }
-  //   this.modalCloseHandler()
-  // }
-
-  public async uploadModel(data: FormData) {
-    try {
-      await postModel(data)
-      return true
-    } catch (e: any) {
-      this.handleError(e)
-      return false
-    }
-  }
-
+  
   protected handleError(e: any | null) {
     if (e !== null) {
       if (e.name === 'CanceledError') {
@@ -468,9 +287,6 @@ export class AppStore {
         return
       }
 
-      if (e.response?.data?.instruction == 'login')
-        window.open(LOGIN_URL, '_blank')
-      else {
         if (e.response?.data?.display) {
           error(e.response?.data?.display)
         } else if (e.response?.data?.message) {
@@ -478,7 +294,6 @@ export class AppStore {
         } else {
           error(e.message)
         }
-      }
       return
     }
     error('An error has occurred. Please let the app developers know.')

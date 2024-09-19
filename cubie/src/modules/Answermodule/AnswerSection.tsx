@@ -149,14 +149,14 @@ const AnswerSection: FC<IProps> = observer(({ answerStr, answerData, answerChart
         {getContent()}
       </AnswerChartModal>
 
-      {!isDashboard &&
+      {/* {!isDashboard &&
         <div className="flex flex-row items-center my-3">
           <div className={classes.feedbackControl}>
             <span>How did I do?</span>
-            {/* <FeedbackControl /> */}
+            <FeedbackControl />
           </div>
         </div>
-      }
+      } */}
     </div>
   )
 })

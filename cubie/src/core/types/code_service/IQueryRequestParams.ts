@@ -4,4 +4,5 @@ export interface IQueryRequestParams {
   sse_channel: string
   session_id: string | null
   cake_id?: string
+  isWidget?: boolean
 }

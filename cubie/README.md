@@ -6,25 +6,19 @@ To compile the code and create the widget, run the following command:
 ```
 npm run build
 ```
-OR
-
-```
-yarn build
-```
-
 
 ## Usage
 
-### 1. Obtain a CakeId
+### 1. Create a datacake
 
-If you don't have a CakeId, create one [here](https://www.datacakes.ai/).
+If you don't have a datacake, create one [here](https://www.datacakes.ai/).
 
-### 2. Add custom element to your source code.
+### 2. Add the cubie-widget tag to your website.
 
-On your site, add the tags below to your site, replacing `MY_CAKE_ID` with your cake Id:
+On your site, add the tags below to your site, replacing `MY_CAKE_ID` with your datacake's cake ID:
 ```
 <cubie-widget cakeId="MY_CAKE_ID"></cubie-widget>
 
-<script src="https://widget-ten-rosy.vercel.app/widget.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/datacakes-ai/datacakes-widgets@main/build/widget.js"></script>
 
 ```
