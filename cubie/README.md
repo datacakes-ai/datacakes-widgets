@@ -19,6 +19,6 @@ On your site, add the tags below to your site, replacing `MY_CAKE_ID` with your 
 ```
 <cubie-widget cakeId="MY_CAKE_ID"></cubie-widget>
 
-<script src="https://cdn.jsdelivr.net/gh/datacakes-ai/datacakes-widgets@main/build/widget.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/datacakes-ai/datacakes-widgets@main/cubie/public/widget.js"></script>
 
 ```

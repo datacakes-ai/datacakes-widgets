@@ -4,7 +4,7 @@ const webpack = require('webpack')
 module.exports = {
     entry: './src/index.tsx', // Entry point of your application
     output: {
-      path: path.resolve(__dirname, 'build'),
+      path: path.resolve(__dirname, 'public'),
       filename: 'widget.js',
     },
     module: {
