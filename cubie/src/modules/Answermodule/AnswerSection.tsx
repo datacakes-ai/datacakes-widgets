@@ -115,7 +115,7 @@ const AnswerSection: FC<IProps> = observer(({ answerStr, answerData, answerChart
 
       {answerInsight && 
         <div className="p-4">
-          <strong>Insight</strong>: {answerInsight}
+          {answerInsight}
         </div>
       } 
       {answerRecommendation && 

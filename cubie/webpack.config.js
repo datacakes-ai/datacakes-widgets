@@ -1,7 +1,8 @@
 const path = require('path');
 const webpack = require('webpack')
 
-module.exports = {
+module.exports = (env) => {
+  return {
     entry: './src/index.tsx', // Entry point of your application
     output: {
       path: path.resolve(__dirname, 'public'),
@@ -37,5 +38,13 @@ module.exports = {
     resolve: {
       extensions: ['.ts', '.tsx', '.js', '.jsx'], // Resolve both JS and TS files
     },
+    plugins: [
+      new webpack.DefinePlugin({
+        'process.env': {
+          CODE_SVC_URL: JSON.stringify(env.CODE_SVC_URL)
+        }
+      }),
+    ],
     mode: 'production', // Set production mode for optimization
-  };
+  }
+};
