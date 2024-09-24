@@ -51,7 +51,7 @@ const MiniApp: React.FC<MiniAppProps> = observer(({ closeWidget, cakeId }) => {
               answerChartData={app.answerChartData}
               answerChartHtml={app.answerChartHtml}
               answerInsight={app.answerInsight}
-              answerRecommendation={app.answerRecommendation}
+              answerRecommendation={null}
             />
           )}
         </div>
