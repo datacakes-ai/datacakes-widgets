@@ -16,9 +16,6 @@ const MiniApp: React.FC<MiniAppProps> = observer(({ closeWidget, cakeId, cubieAt
   const [searchResult, setSearchResult] = useState<any | null>(null);
 
   const cubieTitle = cubieAttributes?.getNamedItem('cubieTitle') ? cubieAttributes.getNamedItem('cubieTitle')?.value : "Ask Cubie"
-
-  console.log("HERE\nHERE\nHERE: cubieAttr", cubieAttributes)
-
   const app = useApp();
 
   return (

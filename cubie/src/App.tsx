@@ -12,28 +12,40 @@ interface IApp {
   cubieAttributes: NamedNodeMap;
 }
 
+
 const App: FC<IApp> = ({cakeId, cubieAttributes}) => {
   const [isWidgetOpen, setIsWidgetOpen] = useState(false);
-  const buttonColor = cubieAttributes?.getNamedItem('buttonColor') ? cubieAttributes.getNamedItem('buttonColor')?.value : "#fb56c00"
-  const buttonText = cubieAttributes?.getNamedItem('buttonText') ? cubieAttributes.getNamedItem('buttonText')?.value : "Ask Cubie"
+  const [buttonText, setButtonText] = useState<string>("Ask Cubie")
 
+  const buttonCSS = (buttonColor='#fb6c00'): React.CSSProperties => {
+    return {
+      position: 'fixed',
+      bottom: '20px',
+      right: '20px',
+      padding: '10px 20px',
+      background: buttonColor,
+      color: '#fff',
+      border: 'none',
+      borderRadius: '5px',
+      cursor: 'pointer',
+      zIndex: '999'
+    }
+  }
+  const [buttonStyle, setButtonStyle] = useState<React.CSSProperties>(buttonCSS())
+  
   const handleButtonClick = () => {
     setIsWidgetOpen(!isWidgetOpen);
   };
 
-  const defaultButtonStyle: React.CSSProperties = {
-    position: 'fixed',
-    bottom: '20px',
-    right: '20px',
-    padding: '10px 20px',
-    background: buttonColor,
-    color: '#fff',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-    zIndex: '999'
-  };
-  
+  useEffect(() => {
+    if (cubieAttributes.getNamedItem('buttonColor')?.value) {
+      setButtonStyle(buttonCSS(cubieAttributes.getNamedItem('buttonColor')?.value || '#fbc600'))
+    }
+    if (cubieAttributes.getNamedItem('buttonText')?.value) {
+      setButtonText(cubieAttributes.getNamedItem('buttonText')?.value || "Ask Cubie")
+    }
+  }, [])
+
   useEffect(() => {
     if (cakeId) {
       appStore.setCakeId(cakeId);
@@ -44,7 +56,7 @@ const App: FC<IApp> = ({cakeId, cubieAttributes}) => {
   return (
       <AppContext.Provider value={appStore}>
           <div>
-            <button onClick={handleButtonClick} style={defaultButtonStyle}>
+            <button onClick={handleButtonClick} style={buttonStyle}>
               {buttonText}
             </button>
             {isWidgetOpen && ReactDOM.createPortal(<MiniApp cakeId={cakeId} closeWidget={handleButtonClick} cubieAttributes={cubieAttributes}/>, document.body)}
