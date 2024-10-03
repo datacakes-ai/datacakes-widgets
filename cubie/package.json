@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "build": "webpack --mode production",
-    "dev": "webpack serve --port 8182 --env CODE_SVC_URL=http://localhost:5002"
+    "dev": "webpack serve --port 8082 --env CODE_SVC_URL=http://localhost:5002"
   },
   "keywords": [],
   "author": "",
