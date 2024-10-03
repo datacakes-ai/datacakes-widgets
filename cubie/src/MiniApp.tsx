@@ -41,7 +41,7 @@ const MiniApp: React.FC<MiniAppProps> = observer(({ closeWidget, cakeId, cubieAt
 
         {app.isThinking &&
           <div style={{display:'flex', justifyContent: 'center', alignItems: 'center'}}>
-            <div style={{paddingTop:'40px', height:'40px', width:'40px'}}>
+            <div style={{marginTop:'40px', height:'40px', width:'40px'}}>
               <img src={loadinggif} style={{display:'inline', height:'40px'}} />
             </div>
           </div>
