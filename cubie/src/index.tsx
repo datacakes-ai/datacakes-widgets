@@ -8,7 +8,8 @@ import App from './App';
 class ReactWidget extends HTMLElement {
   
   connectedCallback() {
-    const cakeId = this.getAttribute('cakeId') || '';
+    const cakeId = this.getAttribute('cakeId') || ''
+    const cubieAttributes = this.attributes || new NamedNodeMap()
 
     // Create a shadow root for encapsulating styles
     const mountPoint = document.createElement('div');
@@ -20,7 +21,7 @@ class ReactWidget extends HTMLElement {
     // root.render(React.createElement(App, props));
     root.render(
       <React.StrictMode>
-        <App cakeId={cakeId} />
+        <App cakeId={cakeId} cubieAttributes={cubieAttributes}/>
       </React.StrictMode>
     );
     // root.render(React.createElement(App));

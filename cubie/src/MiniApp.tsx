@@ -8,24 +8,29 @@ import loadinggif from './assets/loading.gif'
 interface MiniAppProps {
   closeWidget: () => void;
   cakeId: string;
+  cubieAttributes: NamedNodeMap;
 }
 
-const MiniApp: React.FC<MiniAppProps> = observer(({ closeWidget, cakeId }) => {
+const MiniApp: React.FC<MiniAppProps> = observer(({ closeWidget, cakeId, cubieAttributes }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState<any | null>(null);
+
+  const cubieTitle = cubieAttributes?.getNamedItem('cubieTitle') ? cubieAttributes.getNamedItem('cubieTitle')?.value : "Ask Cubie"
+
+  console.log("HERE\nHERE\nHERE: cubieAttr", cubieAttributes)
 
   const app = useApp();
 
   return (
     <div style={overlayStyle}>
-      <button onClick={closeWidget} style={closeButton}>
-        <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor">
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
-      </button>
       <div style={modalStyle}>
-        <h2>Ask Cubie</h2>
+        <button onClick={closeWidget} style={closeButton}>
+          <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" stroke="black">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+        <h2>{cubieTitle}</h2>
         
         <QuestionField
           placeholder="Ask a question about your data..."
@@ -38,8 +43,10 @@ const MiniApp: React.FC<MiniAppProps> = observer(({ closeWidget, cakeId }) => {
         />
 
         {app.isThinking &&
-          <div style={{display:'flex', justifyContent: 'center'}}>
-            <img src={loadinggif} style={{display:'inline', height:'20px'}}/>
+          <div style={{display:'flex', justifyContent: 'center', alignItems: 'center'}}>
+            <div style={{paddingTop:'40px', height:'40px', width:'40px'}}>
+              <img src={loadinggif} style={{display:'inline', height:'40px'}} />
+            </div>
           </div>
         }
 

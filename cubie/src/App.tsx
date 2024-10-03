@@ -9,15 +9,31 @@ const appStore = new AppStore()
 
 interface IApp {
   cakeId: string;
+  cubieAttributes: NamedNodeMap;
 }
 
-const App: FC<IApp> = ({cakeId}) => {
+const App: FC<IApp> = ({cakeId, cubieAttributes}) => {
   const [isWidgetOpen, setIsWidgetOpen] = useState(false);
+  const buttonColor = cubieAttributes?.getNamedItem('buttonColor') ? cubieAttributes.getNamedItem('buttonColor')?.value : "#fb56c00"
+  const buttonText = cubieAttributes?.getNamedItem('buttonText') ? cubieAttributes.getNamedItem('buttonText')?.value : "Ask Cubie"
 
   const handleButtonClick = () => {
     setIsWidgetOpen(!isWidgetOpen);
   };
 
+  const defaultButtonStyle: React.CSSProperties = {
+    position: 'fixed',
+    bottom: '20px',
+    right: '20px',
+    padding: '10px 20px',
+    background: buttonColor,
+    color: '#fff',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    zIndex: '999'
+  };
+  
   useEffect(() => {
     if (cakeId) {
       appStore.setCakeId(cakeId);
@@ -25,29 +41,17 @@ const App: FC<IApp> = ({cakeId}) => {
     }
   }, [cakeId, appStore])
 
-
   return (
       <AppContext.Provider value={appStore}>
           <div>
-            <button onClick={handleButtonClick} style={buttonStyle}>
-              Ask Cubie
+            <button onClick={handleButtonClick} style={defaultButtonStyle}>
+              {buttonText}
             </button>
-            {isWidgetOpen && ReactDOM.createPortal(<MiniApp cakeId={cakeId} closeWidget={handleButtonClick} />, document.body)}
+            {isWidgetOpen && ReactDOM.createPortal(<MiniApp cakeId={cakeId} closeWidget={handleButtonClick} cubieAttributes={cubieAttributes}/>, document.body)}
           </div>
       </AppContext.Provider>
   );
 }
 
-const buttonStyle: React.CSSProperties = {
-  position: 'fixed',
-  bottom: '20px',
-  right: '20px',
-  padding: '10px 20px',
-  backgroundColor: '#007bff',
-  color: '#fff',
-  border: 'none',
-  borderRadius: '5px',
-  cursor: 'pointer',
-};
 
 export default App;

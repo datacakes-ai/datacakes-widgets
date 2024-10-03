@@ -28,13 +28,10 @@ const useStyles = makeStyles()((theme) => ({
   },
   input: {
     width: '100%',
-    // borderBottom: `1px solid ${theme.palette.text.disabled}`,
-    // padding: '8px 20px 8px 10px',
     background: 'transparent',
     fontSize: theme.typography.body1.fontSize,
     color: theme.palette.text.primary,
     outline: 'none',
-
     '&:disabled': {
       color: '#444',
     },
@@ -78,7 +75,6 @@ const useStyles = makeStyles()((theme) => ({
     minHeight: '80px',
     maxHeight: 'max-content',
     cursor: 'pointer',
-  //borderRadius: '0.25rem',
     border: `1px solid ${theme.palette.text.disabled}`,
     color: theme.palette.text.disabled,
     fontWeight: '400',
@@ -87,7 +83,7 @@ const useStyles = makeStyles()((theme) => ({
     '&:hover': {
       background: theme.palette.primary.main,
       color: theme.palette.text.secondary,
-      border: `1px solid ${theme.palette.text.secondary}`,
+      // border: `1px solid ${theme.palette.text.secondary}`,
     },
 
     '& > p': {
