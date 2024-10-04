@@ -61,7 +61,7 @@ const MiniApp: React.FC<MiniAppProps> = observer(({ closeWidget, cakeId, cubieAt
           )}
         </div>
       </div>
-      <div style={{position:'absolute', bottom:'5', left:'10', fontSize:'12px', opacity:'0.3', background:'white', padding:'2px 4px'}}>
+      <div style={{position:'absolute', bottom:'5px', left:'10px', fontSize:'12px', opacity:'0.3', background:'white', padding:'2px 4px'}}>
         {process.env.VERSION}
       </div>
     </div>
