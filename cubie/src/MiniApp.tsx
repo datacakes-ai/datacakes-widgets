@@ -4,6 +4,7 @@ import QuestionField from './modules/Answermodule/QuestionField';
 import useApp from './hooks/useApp'
 import { observer } from 'mobx-react'
 import loadinggif from './assets/loading.gif'
+import process from 'process'
 
 interface MiniAppProps {
   closeWidget: () => void;
@@ -17,7 +18,7 @@ const MiniApp: React.FC<MiniAppProps> = observer(({ closeWidget, cakeId, cubieAt
 
   const cubieTitle = cubieAttributes?.getNamedItem('cubieTitle') ? cubieAttributes.getNamedItem('cubieTitle')?.value : "Ask Cubie"
   const app = useApp();
-
+  
   return (
     <div style={overlayStyle}>
       <div style={modalStyle}>
@@ -59,6 +60,9 @@ const MiniApp: React.FC<MiniAppProps> = observer(({ closeWidget, cakeId, cubieAt
             />
           )}
         </div>
+      </div>
+      <div style={{position:'absolute', bottom:'5', left:'10', fontSize:'12px', opacity:'0.3', background:'white', padding:'2px 4px'}}>
+        {process.env.VERSION}
       </div>
     </div>
   );

@@ -41,7 +41,8 @@ module.exports = (env) => {
     plugins: [
       new webpack.DefinePlugin({
         'process.env': {
-          CODE_SVC_URL: JSON.stringify(env.CODE_SVC_URL)
+          CODE_SVC_URL: JSON.stringify(env.CODE_SVC_URL),
+          VERSION: JSON.stringify(require("./package.json").version)
         }
       }),
     ],

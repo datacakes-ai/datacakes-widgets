@@ -1,6 +1,6 @@
 {
-  "name": "test",
-  "version": "1.0.0",
+  "name": "cubie-widget",
+  "version": "0.1.4",
   "description": "",
   "scripts": {
     "build": "webpack --mode production",
