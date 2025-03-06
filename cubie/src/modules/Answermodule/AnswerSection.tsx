@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 import { sanitize } from 'isomorphic-dompurify'
 import { FC, useState } from 'react'
-import AnswerTable from './components/AnswerTable'
+import AnswerTable, { ITable } from './components/AnswerTable'
 import { observer } from 'mobx-react'
 import HTMLChart from './components/HTMLChart'
 import AnswerChartModal from './components/AnswerChartModal'
@@ -67,7 +67,7 @@ const useStyles = makeStyles()((theme:any) => ({
 
 interface IProps {
   answerStr: string
-  answerData: string[][]
+  answerData: ITable
   answerChartData: IChartData
   answerChartHtml: string | null
   answerInsight?: string | null

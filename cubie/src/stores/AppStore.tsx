@@ -4,6 +4,7 @@ import { startSSE, stopSSE } from '../core/services/messages'
 import { fetchSources, fetchAnswer, flagAnswer } from '../core/services/code_service'
 import { IChartData } from '../core/types/code_service/IChartData'
 import { randomString } from '../core/utils/main'
+import { ITable } from '../modules/Answermodule/components/AnswerTable'
 export class AppStore {
 
   // ### Cubie State ##################################################################################
@@ -67,7 +68,7 @@ export class AppStore {
     this.setInput('')
     this.thoughtsText = ''
     this.answerText = ''
-    this.answerData = []
+    this.answerData = {}
     this.answerChartData = {}
     this.answerChartHtml = null
     this.queryId = null
@@ -87,7 +88,7 @@ export class AppStore {
   public thoughtsText: string = ''
   public _thoughtSource: string | null = null
   public answerText: string = ''
-  public answerData: any[] = []
+  public answerData: ITable
   public answerChartData: IChartData = {}
   public answerChartHtml: string | null = null
   public answerInsight: string | null = null
@@ -145,6 +146,7 @@ export class AppStore {
     this.isThinking = false
     this._collapsed = false
 
+    console.log(response.data)
     if (response.status == 'ok') {
       this.answerText = response.data.answer ?? ''
       this.answerInsight = response.data.insight ?? ''
@@ -215,7 +217,7 @@ export class AppStore {
     this.thoughtsText = ''
     this._thoughtSource = null
     this.answerText = ''
-    this.answerData = []
+    this.answerData = {}
     this.answerChartData = {}
     this.answerChartHtml = null
     this.error = ''

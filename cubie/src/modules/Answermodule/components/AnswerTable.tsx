@@ -8,7 +8,7 @@ const useStyles = makeStyles()((theme) => ({
   },
   table: {
     overflowX: 'auto',
-    minWidth: '100%',
+    margin:'auto',
 
     '& th, & td': {
       border: `1px solid ${theme.palette.primary.main}`,
@@ -25,19 +25,19 @@ const useStyles = makeStyles()((theme) => ({
   },
 }))
 
+export interface ITable {
+  columns?: string[]
+  data?: any[][]
+}
 interface IProps {
-  data: string[][],
+  data: ITable,
   containerStyle?: string,
   tableStyle?: string,
 }
 const AnswerTable: FC<IProps> = ({ data, containerStyle, tableStyle }) => {
   const { classes, cx } = useStyles()
 
-  if (data == null || !Array.isArray(data) || data.length === 0) {
-    return null
-  }
-
-  const keys = Object.keys(data[0])
+  const keys = data.columns
 
   if (keys == null) {
     return null
@@ -54,10 +54,10 @@ const AnswerTable: FC<IProps> = ({ data, containerStyle, tableStyle }) => {
           </tr>
         </thead>
         <tbody>
-          {data.map((row: any, index: number) => (
-            <tr key={index}>
-              {keys.map((key: string, index2: number) => (
-                <td key={index2}>{String(row[key])}</td>
+          {data.data?.map((row: any[], i: number) => (
+            <tr key={i}>
+              {row.map((val: string, j: number) => (
+                <td key={j}>{val}</td>
               ))}
             </tr>
           ))}
