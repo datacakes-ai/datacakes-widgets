@@ -9,10 +9,6 @@ import AnswerChart from './components/AnswerChart'
 import { IChartData } from '../../core/types/code_service/IChartData'
 import { makeStyles } from '../../core/utils/theme'
 
-// Icon
-// import ViewIcon from '../../../assets/Svgs/action/view_24 px.svg';
-// import SplitScreenIcon from '../../../assets/Svgs/action/splitscreen_add_24_px.svg';
-
 const useStyles = makeStyles()((theme:any) => ({
   root: {
     height: '100%',
@@ -142,13 +138,12 @@ const AnswerSection: FC<IProps> = observer(({ answerStr, answerData, answerChart
       {isDashboard && 
       <div className="h-[50px]" />
       }
-      <div className="w-full overflow-auto">
-        <AnswerTable data={answerData} />
-      </div>
       <AnswerChartModal open={isOpen} onClose={handleClose} title="Answer">
         {getContent()}
       </AnswerChartModal>
-
+      <div className="w-full overflow-auto">
+        <AnswerTable data={answerData} />
+      </div>
       {/* {!isDashboard &&
         <div className="flex flex-row items-center my-3">
           <div className={classes.feedbackControl}>

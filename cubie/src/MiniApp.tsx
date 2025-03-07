@@ -4,7 +4,7 @@ import QuestionField from './modules/Answermodule/QuestionField';
 import useApp from './hooks/useApp'
 import { observer } from 'mobx-react'
 import loadinggif from './assets/loading.gif'
-import process from 'process'
+// import process from 'process'
 
 interface MiniAppProps {
   closeWidget: () => void;

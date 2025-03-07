@@ -26,7 +26,7 @@ module.exports = (env) => {
         },
         {
           test: /\.(png|jpeg|jpg|gif|svg)$/,
-          use: 'file-loader',
+          type: 'asset/resource',
         },
         {
           test: /\.css$/i,
@@ -40,12 +40,11 @@ module.exports = (env) => {
     },
     plugins: [
       new webpack.DefinePlugin({
-        'process.env': {
-          CODE_SVC_URL: JSON.stringify(env.CODE_SVC_URL),
-          VERSION: JSON.stringify(require("./package.json").version)
-        }
+        'process.env.CODE_SVC_URL': JSON.stringify(env.CODE_SVC_URL),
+        'process.env.VERSION': JSON.stringify(env.VERSION)
       }),
     ],
     mode: 'production', // Set production mode for optimization
+    ignoreWarnings: [/limit/]
   }
 };
